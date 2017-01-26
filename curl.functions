@@ -34,6 +34,9 @@ build_needs m4
 depends build_musl_cross_make_host
 build_needs "$libertine_host"-cc "$libertine_host"-gcc "$libertine_host"-ar "$libertine_host"-ld "$libertine_host"-ranlib "$libertine_host"-strip
 
+depends build_paxctl
+build_needs paxctl
+
 depends build_busybox
 build_needs expr install sort ls sleep wc cut
 
@@ -118,5 +121,5 @@ libertine_compile_curl()
 		
 	popd
 	
-	libertine_public_installAndStripBinariesIn bin curl
+	libertine_public_installAndStripBinaryIn bin curl
 }
