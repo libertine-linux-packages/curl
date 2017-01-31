@@ -4,12 +4,6 @@
 
 variant=upstream
 
-depends zlib
-
-depends libidn
-
-depends libressl
-
 depends build_ccache
 build_needs ccache
 
@@ -31,95 +25,198 @@ build_needs automake aclocal
 depends build_gnum4
 build_needs m4
 
-depends build_musl_cross_make_host
-build_needs "$libertine_host"-cc "$libertine_host"-gcc "$libertine_host"-ar "$libertine_host"-ld "$libertine_host"-ranlib "$libertine_host"-strip
-
-depends build_paxctl
-build_needs paxctl
-
 depends build_busybox
 build_needs expr install sort ls sleep wc cut
 
 depends build_file
 build_needs file
 
-libertine_compile_curl()
-{
-	pushd "$(libertine_public_sourcePath)"
-		
-		libertine_public_populateInputSysroot zlib libidn libressl
-		
-		libertine_public_autoconf_adjustConfigureAcToRemoveGnuTextCruftBeforeAutoconf
-
-		libtoolize --install --force --verbose
-		autoreconf --install --force --verbose
-		
-		libertine_public_autoconf_modernAutoconfConfigure \
-			--disable-debug \
-			--enable-optimize \
-			--enable-warnings \
-			--disable-werror \
-			--disable-curldebug \
-			--enable-symbol-hiding \
-			--enable-http \
-			--disable-ftp \
-			--enable-file \
-			--disable-ldap \
-			--disable-ldaps \
-			--disable-rtsp \
-			--enable-proxy \
-			--disable-dict \
-			--disable-telnet \
-			--disable-tftp \
-			--disable-pop3 \
-			--disable-imap \
-			--disable-smb \
-			--disable-smtp \
-			--disable-gopher \
-			--disable-manual \
-			--disable-libcurl-option \
-			--enable-ipv6 \
-			--disable-versioned-symbols \
-			--enable-threaded-resolver \
-			--disable-verbose \
-			--disable-sspi \
-			--enable-crypto-auth \
-			--disable-ntlm-wb \
-			--disable-tls-srp \
-			--enable-unix-sockets \
-			--enable-cookies \
-			--disable-soname-bump \
-			--disable-ares \
-			--without-libpsl \
-			--without-winssl \
-			--without-darwinssl \
-			--without-gnutls \
-			--without-polarssl \
-			--without-mbedtls \
-			--without-cyassl \
-			--without-nss \
-			--without-axtls \
-			--without-libmetalink \
-			--without-libssh2 \
-			--without-librtmp \
-			--without-winidn \
-			--without-nghttp2 \
-			--with-zlib="$(libertine_public_outputHostSysrootPath zlib)" \
-			--with-libidn="$(libertine_public_outputHostSysrootPath libidn)" \
-			--with-ssl="$(libertine_public_outputHostSysrootPath libressl)" \
-			--with-random=/dev/urandom \
-			--with-ca-bundle=/etc/openssl/cert.pem \
-			--with-ca-path=/etc/openssl/certs \
-			--with-ca-fallback \
-			--without-zsh-functions-dir
-			
-		libertine_public_autoconf_removePoToRemoveGnuTextCruftBeforeMake
-		
-		libertine_public_make
-		
-		libertine_public_make DESTDIR="$(libertine_public_outputHostSysrootPath)" install
-		
-	popd
+case "$package" in
 	
-	libertine_public_installAndStripBinaryIn bin curl
-}
+	build_curl)
+		
+		build_provides curl
+		
+		depends build_musl_cross_make_host
+		build_needs "$libertine_build"-cc "$libertine_build"-gcc "$libertine_build"-ar "$libertine_build"-ld "$libertine_build"-ranlib
+
+		depends build_zlib
+
+		depends build_libressl
+		
+		libertine_compile_build_curl()
+		{
+			pushd "$(libertine_public_sourcePath)"
+		
+				libertine_public_populateInputSysroot build_zlib build_libressl
+		
+				libertine_public_autoconf_adjustConfigureAcToRemoveGnuTextCruftBeforeAutoconf
+
+				libtoolize --install --force --verbose
+				autoreconf --install --force --verbose
+		
+				libertine_public_autoconf_modernAutoconfConfigure \
+					--disable-debug \
+					--enable-optimize \
+					--enable-warnings \
+					--disable-werror \
+					--disable-curldebug \
+					--enable-symbol-hiding \
+					--enable-http \
+					--disable-ftp \
+					--enable-file \
+					--disable-ldap \
+					--disable-ldaps \
+					--disable-rtsp \
+					--enable-proxy \
+					--disable-dict \
+					--disable-telnet \
+					--disable-tftp \
+					--disable-pop3 \
+					--disable-imap \
+					--disable-smb \
+					--disable-smtp \
+					--disable-gopher \
+					--disable-manual \
+					--disable-libcurl-option \
+					--enable-ipv6 \
+					--disable-versioned-symbols \
+					--enable-threaded-resolver \
+					--disable-verbose \
+					--disable-sspi \
+					--enable-crypto-auth \
+					--disable-ntlm-wb \
+					--disable-tls-srp \
+					--enable-unix-sockets \
+					--enable-cookies \
+					--disable-soname-bump \
+					--disable-ares \
+					--without-libpsl \
+					--without-winssl \
+					--without-darwinssl \
+					--without-gnutls \
+					--without-polarssl \
+					--without-mbedtls \
+					--without-cyassl \
+					--without-nss \
+					--without-axtls \
+					--without-libmetalink \
+					--without-libssh2 \
+					--without-librtmp \
+					--without-winidn \
+					--without-nghttp2 \
+					--with-zlib="$(libertine_public_outputBuildSysrootPath build_zlib)" \
+					--without-libidn \
+					--with-ssl="$(libertine_public_outputBuildSysrootPath build_libressl)" \
+					--with-random=/dev/urandom \
+					--with-ca-bundle="$(libertine_public_outputBuildSysrootPath build_libressl)"/etc/ssl/cert.pem \
+					--with-ca-path="$(libertine_public_outputBuildSysrootPath build_libressl)"/etc/ssl/certs \
+					--with-ca-fallback \
+					--without-zsh-functions-dir
+			
+				libertine_public_autoconf_removePoToRemoveGnuTextCruftBeforeMake
+		
+				libertine_public_make
+		
+				libertine_public_make install
+		
+			popd
+		}
+	;;
+	
+	curl)
+		depends build_musl_cross_make_host
+		build_needs "$libertine_host"-cc "$libertine_host"-gcc "$libertine_host"-ar "$libertine_host"-ld "$libertine_host"-ranlib "$libertine_host"-strip
+
+		depends build_paxctl
+		build_needs paxctl
+
+		depends zlib
+
+		depends libidn
+
+		depends libressl
+		
+		libertine_compile_curl()
+		{
+			pushd "$(libertine_public_sourcePath)"
+		
+				libertine_public_populateInputSysroot zlib libidn libressl
+		
+				libertine_public_autoconf_adjustConfigureAcToRemoveGnuTextCruftBeforeAutoconf
+
+				libtoolize --install --force --verbose
+				autoreconf --install --force --verbose
+		
+				libertine_public_autoconf_modernAutoconfConfigure \
+					--disable-debug \
+					--enable-optimize \
+					--enable-warnings \
+					--disable-werror \
+					--disable-curldebug \
+					--enable-symbol-hiding \
+					--enable-http \
+					--disable-ftp \
+					--enable-file \
+					--disable-ldap \
+					--disable-ldaps \
+					--disable-rtsp \
+					--enable-proxy \
+					--disable-dict \
+					--disable-telnet \
+					--disable-tftp \
+					--disable-pop3 \
+					--disable-imap \
+					--disable-smb \
+					--disable-smtp \
+					--disable-gopher \
+					--disable-manual \
+					--disable-libcurl-option \
+					--enable-ipv6 \
+					--disable-versioned-symbols \
+					--enable-threaded-resolver \
+					--disable-verbose \
+					--disable-sspi \
+					--enable-crypto-auth \
+					--disable-ntlm-wb \
+					--disable-tls-srp \
+					--enable-unix-sockets \
+					--enable-cookies \
+					--disable-soname-bump \
+					--disable-ares \
+					--without-libpsl \
+					--without-winssl \
+					--without-darwinssl \
+					--without-gnutls \
+					--without-polarssl \
+					--without-mbedtls \
+					--without-cyassl \
+					--without-nss \
+					--without-axtls \
+					--without-libmetalink \
+					--without-libssh2 \
+					--without-librtmp \
+					--without-winidn \
+					--without-nghttp2 \
+					--with-zlib="$(libertine_public_outputHostSysrootPath zlib)" \
+					--with-libidn="$(libertine_public_outputHostSysrootPath libidn)" \
+					--with-ssl="$(libertine_public_outputHostSysrootPath libressl)" \
+					--with-random=/dev/urandom \
+					--with-ca-bundle='/etc/ssl/cert.pem' \
+					--with-ca-path='/etc/ssl/certs' \
+					--with-ca-fallback \
+					--without-zsh-functions-dir
+			
+				libertine_public_autoconf_removePoToRemoveGnuTextCruftBeforeMake
+		
+				libertine_public_make
+		
+				libertine_public_make DESTDIR="$(libertine_public_outputHostSysrootPath)" install
+		
+			popd
+	
+			libertine_public_installAndStripBinaryIn bin curl
+		}
+	;;
+	
+esac
