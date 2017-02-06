@@ -31,6 +31,27 @@ build_needs expr install sort ls sleep wc cut
 depends build_file
 build_needs file
 
+build_needs mv sed cmp
+_libertine_compile_curl_patchWithSecureTlsCiphers()
+{
+	if core_variable_isUnset 'libertine_curl_tlsLibresslCiphers'; then
+		core_exitError 1 "Please specify 'libertine_curl_tlsLibresslCiphers' in '${libertine_machine}/package-configurations/${package}.config'"
+	fi
+	
+	# Look for  #define DEFAULT_CIPHER_SELECTION,  but it may across on more than one line!
+	
+	local fileToPatch="$(libertine_public_sourcePath)"/lib/vtls/openssl.h
+	mv "$fileToPatch" "$fileToPatch".orig
+	sed \
+		-e 's;"ALL:!EXPORT:!EXPORT40:!EXPORT56:!aNULL:!LOW:!RC4:@STRENGTH";"'"$libertine_curl_tlsLibresslCiphers"'";g' \
+		"$fileToPatch".orig \
+		>"$fileToPatch"
+	
+	if cmp -s "$fileToPatch" "$fileToPatch".orig; then
+		core_exitError 2 "Major failure, failed to patch curl with libressl secure TLS ciphers; look in packages/curl/curl.functions _libertine_compile_curl_patchWithSecureTlsCiphers()"
+	fi
+}
+
 case "$package" in
 	
 	build_curl)
@@ -39,13 +60,15 @@ case "$package" in
 		
 		depends build_musl_cross_make_host
 		build_needs "$libertine_build"-cc "$libertine_build"-gcc "$libertine_build"-ar "$libertine_build"-ld "$libertine_build"-ranlib
-
+		
 		depends build_zlib
 
 		depends build_libressl
 		
 		libertine_compile_build_curl()
 		{
+			_libertine_compile_curl_patchWithSecureTlsCiphers
+			
 			pushd "$(libertine_public_sourcePath)"
 		
 				libertine_public_populateInputSysroot build_zlib build_libressl
@@ -54,7 +77,7 @@ case "$package" in
 
 				libtoolize --install --force --verbose
 				autoreconf --install --force --verbose
-		
+				
 				libertine_public_autoconf_modernAutoconfConfigure \
 					--disable-debug \
 					--enable-optimize \
@@ -115,7 +138,7 @@ case "$package" in
 					--without-zsh-functions-dir
 			
 				libertine_public_autoconf_removePoToRemoveGnuTextCruftBeforeMake
-		
+				
 				libertine_public_make
 		
 				libertine_public_make install
@@ -139,6 +162,8 @@ case "$package" in
 		
 		libertine_compile_curl()
 		{
+			_libertine_compile_curl_patchWithSecureTlsCiphers
+			
 			pushd "$(libertine_public_sourcePath)"
 		
 				libertine_public_populateInputSysroot zlib libidn libressl
