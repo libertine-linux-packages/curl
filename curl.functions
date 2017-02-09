@@ -58,7 +58,7 @@ case "$package" in
 		
 		build_provides curl
 		
-		depends build_musl_cross_make_host
+		depends build_musl_cross_make_build
 		build_needs "$libertine_build"-cc "$libertine_build"-gcc "$libertine_build"-ar "$libertine_build"-ld "$libertine_build"-ranlib
 		
 		depends build_zlib
